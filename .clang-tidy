@@ -1,0 +1,77 @@
+---
+# Keep diagnostics focused on correctness plus the public naming conventions
+# used throughout the C++ standard library.
+Checks: >-
+  -*,
+  clang-analyzer-*,
+  bugprone-*,
+  concurrency-*,
+  google-explicit-constructor,
+  modernize-use-override,
+  performance-*,
+  readability-identifier-naming,
+  readability-make-member-function-const,
+  readability-redundant-*,
+  readability-simplify-*,
+  -bugprone-easily-swappable-parameters
+
+# Naming violations must fail clang-tidy rather than remain advisory warnings.
+WarningsAsErrors: 'readability-identifier-naming'
+HeaderFileExtensions: ['h', 'hh', 'hpp', 'hxx']
+ImplementationFileExtensions: ['c', 'cc', 'cpp', 'cxx']
+HeaderFilterRegex: '.*/(include/rt|lib)/.*'
+ExcludeHeaderFilterRegex: '.*/build/.*'
+FormatStyle: file
+UseColor: true
+ExtraArgs:
+  - '-Wno-unknown-warning-option'
+
+CheckOptions:
+  # Public standard-library vocabulary uses lowercase words separated by '_'.
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.InlineNamespaceCase: lower_case
+  readability-identifier-naming.ClassCase: lower_case
+  readability-identifier-naming.AbstractClassCase: lower_case
+  readability-identifier-naming.StructCase: lower_case
+  readability-identifier-naming.UnionCase: lower_case
+  readability-identifier-naming.EnumCase: lower_case
+  readability-identifier-naming.TypeAliasCase: lower_case
+  readability-identifier-naming.TypedefCase: lower_case
+  readability-identifier-naming.ConceptCase: lower_case
+
+  readability-identifier-naming.FunctionCase: lower_case
+  readability-identifier-naming.MethodCase: lower_case
+  readability-identifier-naming.ConstexprFunctionCase: lower_case
+  readability-identifier-naming.ConstexprMethodCase: lower_case
+
+  readability-identifier-naming.VariableCase: lower_case
+  readability-identifier-naming.GlobalVariableCase: lower_case
+  readability-identifier-naming.LocalVariableCase: lower_case
+  readability-identifier-naming.ParameterCase: lower_case
+  readability-identifier-naming.MemberCase: lower_case
+  readability-identifier-naming.PublicMemberCase: lower_case
+  readability-identifier-naming.ProtectedMemberCase: lower_case
+  readability-identifier-naming.PrivateMemberCase: lower_case
+  readability-identifier-naming.ProtectedMemberPrefix: 'm_'
+  readability-identifier-naming.PrivateMemberPrefix: 'm_'
+
+  readability-identifier-naming.ConstantCase: lower_case
+  readability-identifier-naming.GlobalConstantCase: lower_case
+  readability-identifier-naming.LocalConstantCase: lower_case
+  readability-identifier-naming.StaticConstantCase: lower_case
+  readability-identifier-naming.ConstantMemberCase: lower_case
+  readability-identifier-naming.ConstexprVariableCase: lower_case
+  readability-identifier-naming.EnumConstantCase: lower_case
+
+  # Macros remain visually distinct, as in the C and C++ standard headers.
+  readability-identifier-naming.MacroDefinitionCase: UPPER_CASE
+
+  # Standard declarations conventionally use T, Allocator, Predicate, and N.
+  readability-identifier-naming.TemplateParameterCase: CamelCase
+  readability-identifier-naming.TypeTemplateParameterCase: CamelCase
+  readability-identifier-naming.TemplateTemplateParameterCase: CamelCase
+  readability-identifier-naming.ValueTemplateParameterCase: CamelCase
+
+  readability-identifier-naming.IgnoreMainLikeFunctions: true
+  readability-identifier-naming.IgnoreFailedSplit: false
+...

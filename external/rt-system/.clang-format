@@ -1,0 +1,57 @@
+---
+# The C++ standard does not prescribe source formatting. This is a
+# standard-library-inspired style: compact, lowercase-friendly, and close to
+# the LLVM/libc++ conventions. Identifier spelling is enforced by .clang-tidy.
+Language: Cpp
+BasedOnStyle: LLVM
+Standard: Latest
+
+# Layout
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+ContinuationIndentWidth: 4
+ColumnLimit: 100
+BreakBeforeBraces: Attach
+NamespaceIndentation: All
+IndentCaseLabels: false
+IndentCaseBlocks: false
+IndentPPDirectives: BeforeHash
+PPIndentWidth: 2
+
+# Declarations
+PointerAlignment: Left
+ReferenceAlignment: Left
+DerivePointerAlignment: false
+BreakTemplateDeclarations: MultiLine
+BreakConstructorInitializers: BeforeColon
+PackConstructorInitializers: CurrentLine
+
+# Keep control flow explicit and diffs stable.
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortLambdasOnASingleLine: None
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: false
+
+# Whitespace and file organization
+EmptyLineBeforeAccessModifier: LogicalBlock
+EmptyLineAfterAccessModifier: Never
+FixNamespaceComments: true
+InsertNewlineAtEOF: true
+ReflowComments: true
+SortIncludes: false
+SortUsingDeclarations: Lexicographic
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^[<"]bt/'
+    Priority: 1
+  - Regex: "^<.*>"
+    Priority: 2
+  - Regex: '^".*"'
+    Priority: 3
+...
