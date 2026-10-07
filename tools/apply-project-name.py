@@ -1,22 +1,40 @@
 #!/usr/bin/env python3
-"""Apply the name in project.json across the project template."""
+"""Apply a new project name, then remove this one-shot template initializer."""
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIG_PATH = ROOT / "project.json"
+SCRIPT_PATH = Path(__file__).resolve()
+CMAKE_PATH = ROOT / "CMakeLists.txt"
 VCPKG_PATH = ROOT / "vcpkg.json"
+README_PATH = ROOT / "README.md"
 SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hh", ".hpp", ".hxx"})
 PROJECT_NAME_PATTERN = re.compile(r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")
+TEMPLATE_SECTION_PATTERN = re.compile(
+    r"<!-- template-setup:start -->\n.*?<!-- template-setup:end -->\n*",
+    re.DOTALL,
+)
 
 
 class RenameError(RuntimeError):
     """Raised when the project cannot be renamed safely."""
+
+
+def parse_arguments() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Rename this project template and remove the initializer."
+    )
+    parser.add_argument(
+        "name",
+        help="lowercase kebab-case project name, for example: my-game",
+    )
+    return parser.parse_args()
 
 
 def read_json(path: Path) -> dict[str, object]:
@@ -62,7 +80,18 @@ def replace_source_names(text: str, old_name: str, new_name: str) -> str:
     return text
 
 
+def replace_cmake_name(text: str, old_name: str, new_name: str) -> str:
+    pattern = re.compile(
+        rf"(\bproject\(\s*\"?){re.escape(old_name)}(\"?\s+VERSION\b)"
+    )
+    updated, replacements = pattern.subn(rf"\g<1>{new_name}\g<2>", text, count=1)
+    if replacements != 1:
+        raise RenameError(f'Could not find project "{old_name}" in CMakeLists.txt')
+    return updated
+
+
 def replace_readme_name(text: str, old_name: str, new_name: str) -> str:
+    text = TEMPLATE_SECTION_PATTERN.sub("", text, count=1)
     return re.sub(
         rf"(?<![A-Za-z0-9_-]){re.escape(old_name)}(?![A-Za-z0-9_-])",
         new_name,
@@ -70,10 +99,16 @@ def replace_readme_name(text: str, old_name: str, new_name: str) -> str:
     )
 
 
+def remove_initializer() -> None:
+    gitkeep_path = SCRIPT_PATH.parent / ".gitkeep"
+    gitkeep_path.touch(exist_ok=True)
+    SCRIPT_PATH.unlink()
+
+
 def main() -> int:
-    project = read_json(CONFIG_PATH)
+    arguments = parse_arguments()
+    new_name = arguments.name
     vcpkg = read_json(VCPKG_PATH)
-    new_name = require_name(project, CONFIG_PATH)
     old_name = require_name(vcpkg, VCPKG_PATH)
 
     if not PROJECT_NAME_PATTERN.fullmatch(new_name):
@@ -81,15 +116,11 @@ def main() -> int:
             "Project name must use lowercase kebab-case, start with a letter, "
             "and contain only letters, numbers, and hyphens."
         )
+    if old_name == new_name:
+        raise RenameError(f'Choose a name other than the template name "{old_name}"')
 
     old_include_dir = ROOT / "include" / old_name
     new_include_dir = ROOT / "include" / new_name
-
-    if old_name == new_name:
-        if not new_include_dir.is_dir():
-            raise RenameError(f"Missing include directory: {new_include_dir.relative_to(ROOT)}")
-        print(f'Project is already named "{new_name}".')
-        return 0
 
     if not old_include_dir.is_dir():
         raise RenameError(f"Missing include directory: {old_include_dir.relative_to(ROOT)}")
@@ -110,11 +141,11 @@ def main() -> int:
         if updated != original:
             updates[path] = updated
 
-    readme_path = ROOT / "README.md"
-    readme = readme_path.read_text(encoding="utf-8")
-    updated_readme = replace_readme_name(readme, old_name, new_name)
-    if updated_readme != readme:
-        updates[readme_path] = updated_readme
+    cmake = CMAKE_PATH.read_text(encoding="utf-8")
+    updates[CMAKE_PATH] = replace_cmake_name(cmake, old_name, new_name)
+
+    readme = README_PATH.read_text(encoding="utf-8")
+    updates[README_PATH] = replace_readme_name(readme, old_name, new_name)
 
     vcpkg["name"] = new_name
     updates[VCPKG_PATH] = json.dumps(vcpkg, indent=2) + "\n"
@@ -123,9 +154,11 @@ def main() -> int:
         path.write_text(content, encoding="utf-8")
 
     old_include_dir.rename(new_include_dir)
+    remove_initializer()
 
     print(f'Renamed project from "{old_name}" to "{new_name}".')
     print(f'C++ namespace: {namespace_for(new_name)}')
+    print("Removed the template initializer and created tools/.gitkeep.")
     print("Reconfigure the project before building: cmake --preset debug")
     return 0
 
