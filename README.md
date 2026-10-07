@@ -1,5 +1,18 @@
 # glue
 
+## Use as a template
+
+1. Change the `name` field in `project.json`. Use lowercase kebab-case, such as `my-game`.
+2. Apply it from the repository root:
+
+```sh
+python3 tools/apply-project-name.py
+```
+
+This updates the vcpkg package, CMake target, include directory, include paths, README,
+and C++ namespace. Hyphens become underscores in the namespace, so `my-game` uses
+`namespace my_game`.
+
 ## Clone
 
 Clone the repository with its `rt-system` submodule:
