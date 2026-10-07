@@ -1,23 +1,27 @@
 #include <glue/message_system.h>
+#include <future>
 #include <spdlog/spdlog.h>
 
 #include "system.h"
 
 namespace glue {
-  rt::system::result message_system::init(rt::system_registry&) {
+  rt::system::result message_system::init(rt::system_registry& registry) {
+    m_tasks = &registry.require<task_system>();
     return rt::system::ok();
   }
 
   rt::system::result message_system::update() noexcept {
-    return {};
+    return rt::system::ok();
   }
 
   void message_system::deinit() noexcept {}
 
-  void message_system::disperse() {
-    spdlog::info("Disperse called");
+  std::future<void> message_system::disperse() {
+    return m_tasks->async([]() {
+      spdlog::info("Disperse called");
+    });
   }
 
-  REGISTER_SYSTEM_PRIORITY(glue::message_system, 10);
+  REGISTER_SYSTEM_PRIORITY(glue::message_system, 10)
 
 } // namespace glue

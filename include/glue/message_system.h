@@ -1,7 +1,7 @@
 #pragma once
 
+#include "glue/task_system.h"
 #include "system.h"
-#include <taskflow/taskflow.hpp>
 
 namespace glue {
   class message_system final : public rt::system {
@@ -15,10 +15,9 @@ namespace glue {
     rt::system::result update() noexcept override;
     void deinit() noexcept override;
 
-    void disperse();
+    std::future<void> disperse();
 
   private:
-    tf::Executor m_executor;
-    tf::Taskflow m_taskflow;
+    task_system* m_tasks{nullptr};
   };
 } // namespace glue
