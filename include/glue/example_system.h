@@ -4,12 +4,12 @@
 #include "system.h"
 
 namespace glue {
-  class message_system final : public rt::system {
+  class example_system final : public rt::system {
   public:
-    DECLARE_SYSTEM(message_system);
+    DECLARE_SYSTEM(example_system);
 
-    message_system() = default;
-    ~message_system() override = default;
+    example_system() = default;
+    ~example_system() override = default;
 
     rt::system::result init(rt::system_registry&) override;
     rt::system::result update() noexcept override;
